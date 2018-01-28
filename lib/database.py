@@ -76,13 +76,13 @@ class Database(object):
             abort(404, "get_columns: {}".format(e.args[1]))
 
     # Insert a new fact
-    def add_fact(self, userid, highlight, replacement, url, description):
+    def add_fact(self, userid, highlight, replacement, description):
         try:
             self.query(
                 """
-                INSERT INTO facts (`userid`, `highlight`, `replacement`, `url`, `description`)
+                INSERT INTO facts (`userid`, `highlight`, `replacement`, `description`)
                 VALUES ('{}', '{}', '{}', '{}', '{}');
-                """.format(userid, highlight, replacement, url, description))
+                """.format(userid, highlight, replacement, description))
         except MySQLdb.Error as e:
             abort(400, "add_fact: {}".format(e.args[1]))
 
@@ -126,4 +126,80 @@ class Database(object):
             rv["timestamp"] = datetime.strftime(rv["timestamp"], TIME_FORMAT)
             return rv
         except MySQLdb.Error as e:
-            abort(400, "get_fact: {}".format(factid))
+            abort(400, "get_fact: {}".format(e.args[1]))
+
+    # Check if a userid has voted on a factid. If not, return None, otherwise 
+    # return the value of the vote (+! or -1).
+    def get_vote(self, userid, factid):
+        try:
+            rv = self.query(
+                """
+                SELECT value
+                FROM votes
+                WHERE userid='{}' AND factid='{}'
+                """.format(userid, factid))
+            return None if not rv else rv[0]["value"]
+        except MySQLdb.Error as e:
+            abort(400, "get_vote: {}".format(e.args[1]))
+
+    # Insert vote into votes table
+    def add_vote(self, userid, factid, vote):
+        try:
+            self.query(
+                """
+                INSERT INTO votes (`factid`, `userid`, `value`)
+                VALUES ('{}', '{}', '{}')
+                """.format(factid, userid, vote))
+        except MySQLdb.Error as e:
+            abort(400, "add_vote: {}".format(e.args[1]))        
+
+    # Retrieve number of total votes (upvotes + downvotes) for a factid
+    def get_vote_count(self, factid):
+        try:
+            rv = self.query(
+                """
+                SELECT value
+                FROM votes
+                WHERE factid='{}'
+                """.format(factid))
+            if not rv:
+                return 0
+            else:
+                return sum([item["value"] for item in rv])
+        except MySQLdb.Error as e:
+            abort(400, "get_vote_count: {}".format(e.args[1]))
+
+    # Update vote value in votes table corresponding to factid and userid
+    def update_vote(self, userid, factid, vote):
+        try:
+            self.query(
+                """
+                UPDATE votes
+                SET value='{}'
+                WHERE factid='{}' AND userid='{}'
+                """.format(vote, factid, userid)
+                )
+        except MySQLdb.Error as e:
+            abort(400, "update_vote: {}".format(e.args[1]))
+
+    # Add upvote
+    def upvote(self, userid, factid):
+        vote = self.get_vote(userid, factid)
+        if vote is None:
+            self.add_vote(userid, factid, 1)
+        elif vote == -1:
+            self.update_vote(userid, factid, 1)
+        else:
+            return False
+        return True
+
+    # Add downvote
+    def downvote(self, userid, factid):
+        vote = self.get_vote(userid, factid)
+        if vote is None:
+            self.add_vote(userid, factid, -1)
+        elif vote == 1:
+            self.update_vote(userid, factid, -1)
+        else:
+            return False
+        return True

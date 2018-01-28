@@ -12,10 +12,12 @@ class Endpoint(Resource):
     # Valid GET request:
     #
     #   GET /v1/<userid>
-    #
     #   GET /v1/<userid>/<flag>
-    #
     #   GET /v1/<userid>/facts (return facts)
+    #
+    #   GET /v1/fact/<factid>
+    #   GET /v1/fact/<factid>/<flag>
+    #   GET /v1/fact/<factid>/votes
     #
     def get(self, key_path):
         endpoint = EP.parse_endpoint(key_path)
@@ -30,6 +32,18 @@ class Endpoint(Resource):
                     if self.db.fact_exists(factid):
                         rv = self.db.get_fact(factid)
                         user_requested_fact = True
+                        if len(endpoint) == 3:
+                            try:
+                                rv = rv[endpoint[2]]
+                            except:
+                                try:
+                                    if endpoint[2] == "votes":
+                                        rv = self.db.get_vote_count(factid)
+                                except:
+                                    abort(400, 
+                                        "No endpoint found matching '{}'".format(key_path))
+                        elif len(endpoint) >= 3:
+                            abort(400, "Bad endpoint.")
                     else:
                         abort(400, "Fact ID {} does not exist.".format(factid))
                 else:
@@ -70,60 +84,79 @@ class Endpoint(Resource):
     # Valid post request:
     #
     #   POST /v1/<userid>
-    #       payload: {"url": "...", "description": "..."}
+    #       payload: {"highlight":"", "replacement":"", description":""}
     #
     #   POST /v1/<userid>/<factID>/<flag>
     #       payload: "www.google.com" (if flag is 'url')
     #
+    #   POST /v1/fact/<factid>/<userid>/<action>
+    #       action is "upvote" or "downvote", no payload
+    #
     def post(self, key_path):
+        rv = []
         endpoint = EP.parse_endpoint(key_path)
-        rv       = []
 
-        # Check if given userid exists in database
-        if len(endpoint) >= 1:
-            userid = endpoint[0]
-            user_exists = self.db.user_exists(userid)
-        else:
-            abort(400, "Bad payload!")
+        is_vote_action = False
+        if len(endpoint) == 4 and endpoint[0] == "fact":
+            is_vote_action = True
+            factid = endpoint[1]
+            userid = endpoint[2]
+            flag   = endpoint[3]
+            if not self.db.fact_exists(factid) or not self.db.user_exists(userid):
+                abort(400, "User and/or fact ID does not exist.")
+            if flag == "upvote":
+                rv = self.db.upvote(userid, factid)
+            elif flag == "downvote":
+                rv = self.db.downvote(userid, factid)
+            else:
+                abort(400, "Unknown flag, '{}'.".format(flag))
 
-        # If userid doesn't exist, abort
-        if not user_exists:
-            abort(404, "No user exists with ID {}.".format(userid))
+        if not is_vote_action:
+            # Check if given userid exists in database
+            if len(endpoint) >= 1:
+                userid = endpoint[0]
+                user_exists = self.db.user_exists(userid)
+            else:
+                abort(400, "Bad payload!")
 
-        # Try to decode the data payload
-        data_is_string = False
-        try:
-            data = request.data.decode("utf-8")
+            # If userid doesn't exist, abort
+            if not user_exists:
+                abort(404, "No user exists with ID {}.".format(userid))
+
+            # Try to decode the data payload
+            data_is_string = False
             try:
-                data = loads(data)
-            except ValueError:
-                data_is_string = True
-        except (TypeError, ValueError) as error:
-            abort(400, "Bad data payload ({} bytes).".format(len(request.data)))
+                data = request.data.decode("utf-8")
+                try:
+                    data = loads(data)
+                except ValueError:
+                    data_is_string = True
+            except (TypeError, ValueError) as error:
+                abort(400, "Bad data payload ({} bytes).".format(len(request.data)))
 
-        # Determine if user is POSTing a new fact or updating an old one
-        if len(endpoint) == 1:  # User is POSTing a new fact
-            if "highlight" in data and "replacement" in data and \
-               "url" in data and "description" in data:
-                self.db.add_fact(userid,
-                    data["highlight"], data["replacement"], 
-                    data["url"], data["description"])
+            # Determine if user is POSTing a new fact or updating an old one
+            if len(endpoint) == 1:  # User is POSTing a new fact
+                if "highlight" in data and "replacement" in data and \
+                   "url" in data and "description" in data:
+                    self.db.add_fact(userid,
+                        data["highlight"], data["replacement"], data["description"])
+                else:
+                    abort(400, "Bad payload, must provide highlight, replacement, and description fields.")
+
+            elif len(endpoint) == 3:  # User is updating a fact
+                columns = self.db.get_columns("facts")
+                factid  = endpoint[1]
+                flag    = endpoint[2]
+                if factid < 0 or not self.db.fact_exists(factid):
+                    abort(400, "Fact with ID {} does not exist.".format(factid))
+                if flag in columns:
+                    self.db.update_fact(factid, flag, data)
+                else:
+                    abort(400, "Fact update failed, flag '{}' is not recognized.".format(flag))
+
             else:
-                abort(400, "Bad payload, must provide highlight, replacement, url, and description fields.")
+                abort(404, "Bad endpoint.")
 
-        elif len(endpoint) == 3:  # User is updating a fact
-            columns = self.db.get_columns("facts")
-            factid  = endpoint[1]
-            flag    = endpoint[2]
-            if factid < 0 or not self.db.fact_exists(factid):
-                abort(400, "Fact with ID {} does not exist.".format(factid))
-            if flag in columns:
-                self.db.update_fact(factid, flag, data)
-            else:
-                abort(400, "Fact update failed, flag '{}' is not recognized.".format(flag))
-
-        else:
-            abort(404, "Bad endpoint.")
-
-        rv = data
+            rv = data
+    
         return rv
