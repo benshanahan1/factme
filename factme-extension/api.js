@@ -1,5 +1,9 @@
 // Functions to interact with API
 
+var div = document.createElement('div');
+div.innerHTML = ("<script src='jquery-3.3.1.min.js'></script>");
+document.body.appendChild(div);
+
 var api = "http://138.16.49.17/v1/";
 
 // GET request from API. Endpoint specifies the API endpoint for the request. 
@@ -56,5 +60,3 @@ function api_delete(endpoint="", callback=undefined) {
         console.log("DELETE request to API failed: " + full_endpoint);
     });
 }
-
-export {api_post};

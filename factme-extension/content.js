@@ -1,13 +1,11 @@
-import * from 'api.js'
 
-var apiURL = "http://138.16.49.17/v1/"
-var userID = "234567"
-
-// request facts associated with the current page
-payload = JSON.stringify({url:window.location.href})
-api_post(endpoint=userID, payload=payload, function(data) {
-console.log(data);
+// when the page loads, ask the background to retrieve the factlist from the server
+var factList = [];
+chrome.runtime.sendMessage({greeting: "hello", status: "pageLoaded", text: window.location.href}, function(response) {
+	factList = response.text;
 });
+
+console.log(factList);
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
@@ -22,3 +20,27 @@ chrome.runtime.onMessage.addListener(
     else if (request.greeting == "hello")
       sendResponse({farewell: "goodbye"});
   });
+
+
+function findTextInPage(phrase) {
+	var elements = document.getElementsByTagName('*');
+
+	for (var i = 0; i < elements.length; i++) {
+	    var element = elements[i];
+
+	    for (var j = 0; j < element.childNodes.length; j++) {
+	        var node = element.childNodes[j];
+
+	        if (node.nodeType === 3) {
+	            var text = node.nodeValue;
+	            var replacedText = text.replace(phrase, 'sendNudes');
+
+	            if (replacedText !== text) {
+	                element.replaceChild(document.createTextNode(replacedText), node);
+	            }
+	        }
+	    }
+	}
+}
+
+findTextInPage('sendMessage')

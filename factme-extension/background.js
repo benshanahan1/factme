@@ -1,16 +1,30 @@
+var apiURL = "http://138.16.49.17/v1/";
+var userID = "234567";
 
-// chrome.runtime.onMessage.addListener(
-  // function(request, sender, sendResponse) {
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
     
-  //   if (request.status == "factCheckClickResponse") {
-  //     console.log(request.text)
-  //     chrome.windows.create({"url": 'redirect.html', "type": 'popup'});
-  //   }
+    // return the factlist when the page loads
+    if (request.status == "pageLoaded") {
+      payload = JSON.stringify({url:window.location.href})
+      endpoint = userID + "/get_facts_by_url/"
+      var list = [];
+      api_post(endpoint=endpoint, payload=payload, function(data) { 
+        console.log(data);
+        list = data;
+      });
+      sendResponse({farewell: "goodbye", text: list});
+    }
+    else if (request.status == "factCheckClickResponse") {
+      console.log(request.text)
+      chrome.windows.create({"url": 'redirect.html', "type": 'popup'});
+    }
 
 
-  //   if (request.greeting == "hello")
-  //     sendResponse({farewell: "goodbye"});
-  // });
+    else if (request.greeting == "hello")
+      sendResponse({farewell: "goodbye"});
+  });
 
 function fetch_text (url) {
     return fetch(url).then((response) => (response.text()));
@@ -47,13 +61,3 @@ function replaceTextOnClick(info, tab) {
 var checkbox1 = chrome.contextMenus.create(
   {"title": "Replace Text", "type": "checkbox", "contexts": ["all"], "onclick":replaceTextOnClick});
 
-
-// Intentionally create an invalid item, to show off error checking in the
-// create callback.
-console.log("About to try creating an invalid item - an error about " +
-            "item 999 should show up");
-chrome.contextMenus.create({"title": "Oops", "parentId":999}, function() {
-  if (chrome.extension.lastError) {
-    console.log("Got expected error: " + chrome.extension.lastError.message);
-  }
-});
