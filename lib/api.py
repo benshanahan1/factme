@@ -1,0 +1,129 @@
+from flask import abort, request
+from flask_restful import Resource
+from lib.database import Database
+from lib.util import EndpointParser as EP
+from json import loads, dumps
+
+class Endpoint(Resource):
+    
+    def __init__(self):
+        self.db  = Database()
+ 
+    # Valid GET request:
+    #
+    #   GET /v1/<userid>
+    #
+    #   GET /v1/<userid>/<flag>
+    #
+    #   GET /v1/<userid>/facts (return facts)
+    #
+    def get(self, key_path):
+        endpoint = EP.parse_endpoint(key_path)
+        rv       = []
+
+        # Check if endpoint is 'fact' otherwise, it will be userid
+        user_requested_fact = False
+        if len(endpoint) >= 1:
+            if endpoint[0] == "fact":
+                if len(endpoint) > 1:
+                    factid = endpoint[1]
+                    if self.db.fact_exists(factid):
+                        rv = self.db.get_fact(factid)
+                        user_requested_fact = True
+                    else:
+                        abort(400, "Fact ID {} does not exist.".format(factid))
+                else:
+                    abort(400, "No fact ID specified.")
+
+        if not user_requested_fact and len(endpoint) >= 1:
+            # A userid was specified in the endpoint
+            userid = endpoint[0]
+            if self.db.user_exists(userid):
+                user_details = self.db.get_user_details(userid)
+                if len(endpoint) == 2:
+                    flag = endpoint[1]
+                    
+                    # Check if there is a column in the database matching `flag`
+                    try:
+                        rv = user_details[flag]
+                    except:
+                        if flag == "facts":
+                            rv = self.db.get_user_facts(userid)
+                        else:
+                            abort(400, "No endpoint found matching '{}'.".format(key_path))
+
+                elif len(endpoint) > 2:
+                    abort(404, "Bad endpoint.")
+
+                else:  # return all user details
+                    rv = user_details
+
+            else:
+                abort(404, "No user exists with ID {}.".format(userid))
+
+        elif not user_requested_fact:
+            abort(400, "Bad payload!")
+
+        return rv
+
+
+    # Valid post request:
+    #
+    #   POST /v1/<userid>
+    #       payload: {"url": "...", "description": "..."}
+    #
+    #   POST /v1/<userid>/<factID>/<flag>
+    #       payload: "www.google.com" (if flag is 'url')
+    #
+    def post(self, key_path):
+        endpoint = EP.parse_endpoint(key_path)
+        rv       = []
+
+        # Check if given userid exists in database
+        if len(endpoint) >= 1:
+            userid = endpoint[0]
+            user_exists = self.db.user_exists(userid)
+        else:
+            abort(400, "Bad payload!")
+
+        # If userid doesn't exist, abort
+        if not user_exists:
+            abort(404, "No user exists with ID {}.".format(userid))
+
+        # Try to decode the data payload
+        data_is_string = False
+        try:
+            data = request.data.decode("utf-8")
+            try:
+                data = loads(data)
+            except ValueError:
+                data_is_string = True
+        except (TypeError, ValueError) as error:
+            abort(400, "Bad data payload ({} bytes).".format(len(request.data)))
+
+        # Determine if user is POSTing a new fact or updating an old one
+        if len(endpoint) == 1:  # User is POSTing a new fact
+            if "highlight" in data and "replacement" in data and \
+               "url" in data and "description" in data:
+                self.db.add_fact(userid,
+                    data["highlight"], data["replacement"], 
+                    data["url"], data["description"])
+            else:
+                abort(400, "Bad payload, must provide highlight, replacement, url, and description fields.")
+
+        elif len(endpoint) == 3:  # User is updating a fact
+            columns = self.db.get_columns("facts")
+            factid  = endpoint[1]
+            flag    = endpoint[2]
+            if factid < 0 or not self.db.fact_exists(factid):
+                abort(400, "Fact with ID {} does not exist.".format(factid))
+            if flag in columns:
+                self.db.update_fact(factid, flag, data)
+            else:
+                abort(400, "Fact update failed, flag '{}' is not recognized.".format(flag))
+
+        else:
+            abort(404, "Bad endpoint.")
+
+        rv = data
+        return rv
