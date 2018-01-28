@@ -10,40 +10,78 @@ chrome.runtime.sendMessage({greeting: "hello", status: "pageLoaded", text: windo
 function addFactsToPage(facts) {
   for (i in facts) {
     fact = facts[i];
-    
+
+  idString = "id" + (fact.id).toString()
+
+ 
     altText = "Suggested replacement: " + fact.replacement;
     inputText = document.body
     var innerHTML = inputText.innerHTML;
-    var index = innerHTML.indexOf(facts.highlight);
+    var index = innerHTML.indexOf(fact.highlight);
     if ( index >= 0 )
     { 
         innerHTML = innerHTML.substring(0,index) + 
             "<span class='factCheckedText' id='" + 
-            fact.id + "' title='" + altText + "'>" + 
-            innerHTML.substring(index,index+text.length) + 
-            "</span>" + innerHTML.substring(index + text.length);
+            idString + "text' title='" + altText + "'>" + 
+            innerHTML.substring(index,index+altText.length) + 
+            "</span>" + innerHTML.substring(index + altText.length);
         inputText.innerHTML = innerHTML; 
     }
 
-    idString = "id" + (fact.id).toString()
-    factDisplayStringMod = factDisplayString.replace("replacementPopup", idString);    
-    factDisplayStringMod = factDisplayStringMod.replace("areplacement:", fact.replacement);
+    
+    var factDisplayStringMod = factDisplayString.replace("replacementPopup", idString);    
+    factDisplayStringMod = factDisplayStringMod.replace("areplacement", fact.replacement);
     factDisplayStringMod = factDisplayStringMod.replace("adescription", fact.description);
-    factDisplayStringMod = factDisplayStringMod.replace(">99<", ">" + (fact.votes).toString() + "<");
+    factDisplayStringMod = factDisplayStringMod.replace("voteCounter", idString + "voteCounter");
+    factDisplayStringMod = factDisplayStringMod.replace("upvoteBtn", idString + "upvoteBtn");
+    factDisplayStringMod = factDisplayStringMod.replace("downvoteBtn", idString + "downvoteBtn");
 
-
+   
     // create div for fact display
     var factDisplayDiv = document.createElement('div');
     factDisplayDiv.innerHTML = factDisplayStringMod
     document.body.appendChild(factDisplayDiv);
       
-    // populate with fact information
-    // $("#" + idString).find("#replacement").text = fact.replacement;
-    // $("#" + idString).find("#description").text = fact.description;
-    // $("#" + idString).find("#voteCounter").text = fact.votes;
-    // $("#" + idString).find("#upvoteBtn").click(function() { console.log("upvote")})
-    // $("#" + idString).find("#downvoteBtn").click(function() {console.log("downvote")})
+    document.getElementById(idString + "voteCounter").innerHTML = (fact.votes).toString()
+
+    $("#" + idString + "text").click( function() {
+      console.log(idString + "text")
+      $("#" + idString).modal('show');
+    });
+
+    $("#" + idString + "upvoteBtn").click( function() {
+      console.log(idString + "upvoteBtn")
+
+      vote("upvote", fact.id, idString)
+    });
+
+    $("#" +  idString + "downvoteBtn").click( function() {
+      console.log(idString + "downvoteBtn")
+
+      vote("downvote", fact.id, idString)
+    });
+
+
     }
+}
+
+function vote(action, id, idString) {
+  chrome.runtime.sendMessage({greeting: "hello", status: "vote", text: {action:action, id:id}}, function(response) {
+    console.log("vote: ", response);
+    if (response.text) {
+    chrome.runtime.sendMessage({greeting: "hello", status: "getVote", text:id}, function(response) {
+      console.log("get vote: ", response);
+      document.getElementById(idString + "voteCounter").innerHTML = response.text;
+    });
+  }
+  });
+}
+
+function getVote(id, idString) {
+  chrome.runtime.sendMessage({greeting: "hello", status: "getVote", text:id}, function(response) {
+  console.log("get vote: ", response);
+  document.getElementById(idString + "voteCounter").innerHTML = response.text
+});
 }
 
 var factDisplayString = `
@@ -61,17 +99,15 @@ var factDisplayString = `
             <span style="font-style:italic; float:left;">areplacement</span>
           </div>
           <div class="row">
-            <div class="col-lg-10">
               <blockquote class="blockquote">
                 <p id="description">adescription</p>
               </blockquote>
             </div>
-            
-            <div class="col-lg-2">
-              <button type="button" style="padding-left:20px; padding-right:20px;" class="btn btn-outline-primary" id="upvoteBtn">🢁</button>
-              <div id="voteCounter" style="text-align:center;font-weight:bold;font-size:15pt;">99</div>
-              <button type="button" style="padding-left:20px; padding-right:20px;" class="btn btn-outline-secondary" id="downvoteBtn">🢃</button>
-            </div>
+            <div style="float:right;">
+              <button type="button" style="padding-left:20px; padding-right:20px;" class="btn btn-outline-primary" data-toggle="tooltip" id="downvoteBtn">\\/</button> 
+              <button id="voteCounter" style="text-align:center;font-weight:bold;font-size:15pt;" class="btn btn-outline-dark" disabled>0</button>   
+              <button type="button" style="padding-left:20px; padding-right:20px;" class="btn btn-outline-primary" data-toggle="tooltip" id="upvoteBtn">/\\</button>
+
           </div>
         </div>
       </div>

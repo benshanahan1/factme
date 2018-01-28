@@ -58,7 +58,24 @@ chrome.runtime.onMessage.addListener(
       });
       return true;
     }
-
+      else if (request.status == "vote") {
+      endpoint = 'fact/' + (request.text.id).toString() + '/' + userID + '/' + request.text.action
+      console.log(endpoint);
+      api_post(endpoint=endpoint, payload={}, function(data) {
+        console.log(data);
+        sendResponse({farewell: "goodbye", text: data});
+      });
+      return true;
+    }
+    else if (request.status == "getVote") {
+      endpoint = 'fact/' + (request.text).toString() + '/votes';
+      console.log(endpoint);
+      api_get(endpoint=endpoint, function(data) {
+        console.log(data);
+        sendResponse({farewell: "goodbye", text: data});
+      });
+      return true;
+    }
     else if (request.status == "factCheckClickResponse") {
       console.log(request.text)
       chrome.windows.create({"url": 'redirect.html', "type": 'popup'});
@@ -74,7 +91,6 @@ function fetch_text (url) {
 }
 
 
-
 // A generic onclick callback function.
 function factCheckOnClick(info, tab) {
   chrome.tabs.sendMessage(tab.id, {greeting: "hello", status: "factCheckClicked"}, function(response) {
@@ -83,18 +99,17 @@ function factCheckOnClick(info, tab) {
   });
 }
 
-
 var id = chrome.contextMenus.create({"title": "Fact Check", "contexts": ["selection"], "onclick": factCheckOnClick});
 
 
-// Create some checkbox items.
-function replaceTextOnClick(info, tab) {
-  console.log(JSON.stringify(info));
-  console.log("checkbox item " + info.menuItemId +
-              " was clicked, state is now: " + info.checked +
-              "(previous state was " + info.wasChecked + ")");
+// // Create some checkbox items.
+// function replaceTextOnClick(info, tab) {
+//   console.log(JSON.stringify(info));
+//   console.log("checkbox item " + info.menuItemId +
+//               " was clicked, state is now: " + info.checked +
+//               "(previous state was " + info.wasChecked + ")");
 
-}
-var checkbox1 = chrome.contextMenus.create(
-  {"title": "Replace Text", "type": "checkbox", "contexts": ["all"], "onclick":replaceTextOnClick});
+// }
+// var checkbox1 = chrome.contextMenus.create(
+//   {"title": "Replace Text", "type": "checkbox", "contexts": ["all"], "onclick":replaceTextOnClick});
 
