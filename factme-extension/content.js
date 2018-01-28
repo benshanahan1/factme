@@ -1,3 +1,14 @@
+import * from 'api.js'
+
+var apiURL = "http://138.16.49.17/v1/"
+var userID = "234567"
+
+// request facts associated with the current page
+payload = JSON.stringify({url:window.location.href})
+api_post(endpoint=userID, payload=payload, function(data) {
+console.log(data);
+});
+
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
 
