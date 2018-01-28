@@ -162,6 +162,7 @@ class Database(object):
                 """.format(factid))
             rv = rv[0]
             rv["timestamp"] = datetime.strftime(rv["timestamp"], TIME_FORMAT)
+            rv["votes"] = self.get_vote_count(factid)
             return rv
         except MySQLdb.Error as e:
             abort(400, "get_fact: {}".format(e.args[1]))
