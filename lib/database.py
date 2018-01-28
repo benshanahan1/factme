@@ -48,6 +48,19 @@ class Database(object):
         r = self.query("SELECT userid FROM users WHERE userid=%s", (userid,))
         return len(r) is not 0
 
+    # Create a new user
+    def create_user(self, userid):
+        try:
+            self.query(
+                """
+                INSERT INTO users (`userid`)
+                VALUES ('{}')
+                """.format(userid))
+            return True
+        except MySQLdb.Error as e:
+            abort(400, "create_user: {}".format(e.args[1]))
+
+
     # Retrieve user details given their userid
     def get_user_details(self, userid=None):
         r = self.query("SELECT * FROM users WHERE userid=%s", (userid,))

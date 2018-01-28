@@ -110,8 +110,16 @@ class Endpoint(Resource):
                 rv = self.db.downvote(userid, factid)
             else:
                 abort(400, "Unknown flag, '{}'.".format(flag))
-
         if not is_vote_action:
+            if len(endpoint) == 2:
+                if endpoint[0] == "create_user":
+                    userid = endpoint[1]
+                    if not self.db.user_exists(userid):
+                        rv = self.db.create_user(userid)
+                        return rv
+                    else:
+                        abort(400, "User already exists.")
+
             # Check if given userid exists in database
             if len(endpoint) >= 1:
                 userid = endpoint[0]
@@ -136,7 +144,6 @@ class Endpoint(Resource):
 
             # Determine if user is POSTing a new fact or updating an old one
             if len(endpoint) == 1:  # User is POSTing a new fact
-                print(data)
                 if "highlight" in data and "replacement" in data and \
                    "description" in data and "url" in data:
                     self.db.add_fact(userid,
@@ -164,7 +171,6 @@ class Endpoint(Resource):
                         rv = self.db.get_facts_by_url(data["url"])
                         if rv:
                             rv = [self.db.get_fact(factid) for factid in rv]
-
                     else:
                         abort(400, "Bad payload.")
 
