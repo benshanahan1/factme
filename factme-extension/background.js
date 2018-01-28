@@ -7,14 +7,18 @@ chrome.runtime.onMessage.addListener(
     
     // return the factlist when the page loads
     if (request.status == "pageLoaded") {
-      payload = JSON.stringify({url:window.location.href})
-      endpoint = userID + "/get_facts_by_url/"
-      var list = [];
+      console.log('Getting facts for', request.text);
+      payload = JSON.stringify({url:request.text});
+      endpoint = userID + "/get_facts_by_url/";
+      var factList = undefined;
       api_post(endpoint=endpoint, payload=payload, function(data) { 
-        console.log(data);
-        list = data;
+        console.log('idlist', data);
+        sendResponse({farewell: "goodbye", text: data});
       });
-      sendResponse({farewell: "goodbye", text: list});
+      return true;
+
+      // while (factList == undefined) console.log('waiting for data');
+      
     }
     else if (request.status == "factCheckClickResponse") {
       console.log(request.text)

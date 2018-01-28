@@ -1,11 +1,11 @@
 
 // when the page loads, ask the background to retrieve the factlist from the server
-var factList = [];
+var factList = undefined;
 chrome.runtime.sendMessage({greeting: "hello", status: "pageLoaded", text: window.location.href}, function(response) {
+	console.log(response);
 	factList = response.text;
 });
 
-console.log(factList);
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {

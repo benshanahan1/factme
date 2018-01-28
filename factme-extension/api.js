@@ -12,7 +12,7 @@ function api_get(endpoint="", callback=undefined) {
     var full_endpoint = api + endpoint;
     $.get(full_endpoint, function(data) {
         if (callback != undefined) {
-            callback(JSON.parse(data));
+            callback(data);
         }
     }).fail(function() {
         console.log("GET request to API failed: " + full_endpoint);
