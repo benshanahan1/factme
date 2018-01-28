@@ -5,12 +5,13 @@
   "description": "This extension allows people to fact check the internet",
   "version": "1.0",
   "background": {
-    "scripts": ["jquery-3.3.1.min.js","api.js","background.js"]
+    "scripts": ["jquery-3.3.1.min.js","bootstrap.bundle.min.js","api.js","background.js"]
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["jquery-3.3.1.min.js","api.js","content.js"]
+      "css": ["bootstrap.min.css", "factme.css"],
+      "js": ["jquery-3.3.1.min.js","bootstrap.bundle.min.js","api.js","content.js"]
     }
   ],
   "permissions": [

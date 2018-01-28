@@ -1,0 +1,8 @@
+.factCheckedText {
+	background-color: #FFF333;
+	font-weight: bold;
+}
+
+.factCheckedText :hover {
+	background-color: #CAC34B;
+}
