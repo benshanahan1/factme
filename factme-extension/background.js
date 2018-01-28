@@ -80,12 +80,6 @@ function fetch_text (url) {
 function factCheckOnClick(info, tab) {
   chrome.tabs.sendMessage(tab.id, {greeting: "hello", status: "factCheckClicked"}, function(response) {
     console.log(response.text);
-    // chrome.windows.create({'url': 'newFact.html', 'type': 'popup'}, function(window) {
-    //   chrome.tabs.sendMessage(window.id, {greeting: "hello", status: "newFact", text:response.txt})});
-    // var div = document.createElement('div');
-    // div.innerHTML = fetch_text("newFact.html");
-    // div.setAttribute("style", "position: absolute, width: 500px, height:500px, top: 20px, right: 20px, z-index: 99");
-    // document.body.appendChild(div);
 
   });
 }
