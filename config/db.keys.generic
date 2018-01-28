@@ -1,0 +1,5 @@
+[Database]
+host: localhost
+user: root
+password: secret123
+database: myDB
