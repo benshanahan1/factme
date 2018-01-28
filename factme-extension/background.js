@@ -16,10 +16,18 @@ chrome.runtime.onMessage.addListener(
         sendResponse({farewell: "goodbye", text: data});
       });
       return true;
-
-      // while (factList == undefined) console.log('waiting for data');
       
     }
+    else if (request.status == "newFact") {
+      payload = JSON.stringify(request.text);
+      console.log(payload);
+      api_post(endpoint=userID, payload=payload, function(data) {
+        console.log(data);
+        sendResponse({farewell: "goodbye", text: data});
+      });
+      return true;
+    }
+
     else if (request.status == "factCheckClickResponse") {
       console.log(request.text)
       chrome.windows.create({"url": 'redirect.html', "type": 'popup'});
@@ -40,8 +48,8 @@ function fetch_text (url) {
 function factCheckOnClick(info, tab) {
   chrome.tabs.sendMessage(tab.id, {greeting: "hello", status: "factCheckClicked"}, function(response) {
     console.log(response.text);
-    chrome.windows.create({'url': 'newFact.html', 'type': 'popup'}, function(window) {
-      chrome.tabs.sendMessage(window.id, {greeting: "hello", status: "newFact", text:response.txt})});
+    // chrome.windows.create({'url': 'newFact.html', 'type': 'popup'}, function(window) {
+    //   chrome.tabs.sendMessage(window.id, {greeting: "hello", status: "newFact", text:response.txt})});
     // var div = document.createElement('div');
     // div.innerHTML = fetch_text("newFact.html");
     // div.setAttribute("style", "position: absolute, width: 500px, height:500px, top: 20px, right: 20px, z-index: 99");
