@@ -5,7 +5,7 @@
   "description": "This extension allows people to fact check the internet",
   "version": "1.0",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["jquery-3.3.1.min.js","background.js"]
   },
   "content_scripts": [
     {

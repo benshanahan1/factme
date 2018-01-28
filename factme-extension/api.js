@@ -20,16 +20,28 @@ function api_post(endpoint="", payload=undefined, callback=undefined) {
     var full_endpoint = api + endpoint;
     done_callback = function(data) {
         if (callback != undefined) {
-            callback(JSON.parse(data));
+            callback(data);
         }
     };
     fail_callback = function(data) {
+        // console.log(data)
         console.log("POST request to API failed: " + full_endpoint);
     };
     if (payload == undefined) {
         $.post(full_endpoint, done_callback).fail(fail_callback);
     } else {
-        $.post(full_endpoint, payload).done(done_callback).fail(fail_callback);
+        console.log(payload)
+        // $.post(full_endpoint, payload).done(done_callback).fail(fail_callback);
+        $.ajax({ type: 'POST',
+                url: full_endpoint,
+                data: payload,
+                dataType: 'json',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                contentType: 'application/json',
+                success: done_callback
+        });
     }
 }
 
@@ -44,3 +56,5 @@ function api_delete(endpoint="", callback=undefined) {
         console.log("DELETE request to API failed: " + full_endpoint);
     });
 }
+
+export {api_post};
