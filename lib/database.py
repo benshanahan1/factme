@@ -48,11 +48,6 @@ class Database(object):
         r = self.query("SELECT userid FROM users WHERE userid=%s", (userid,))
         return len(r) is not 0
 
-    # Check if factid exists in facts table
-    def fact_exists(self, factid=None):
-        r = self.query("SELECT id FROM facts WHERE id=%s", (factid,))
-        return len(r) is not 0
-
     # Retrieve user details given their userid
     def get_user_details(self, userid=None):
         r = self.query("SELECT * FROM users WHERE userid=%s", (userid,))
@@ -75,14 +70,44 @@ class Database(object):
         except MySQLdb.Error as e:
             abort(404, "get_columns: {}".format(e.args[1]))
 
-    # Insert a new fact
+    # Check if factid exists in facts table
+    def fact_exists(self, factid=None):
+        r = self.query("SELECT id FROM facts WHERE id=%s", (factid,))
+        return len(r) is not 0
+
+    # Increment user's facts_posted stat
+    def user_increment_facts_posted(self, userid):
+        try:
+            self.query(
+                """
+                UPDATE users
+                SET facts_posted=facts_posted+1
+                WHERE userid='{}'
+                """.format(userid))
+        except MySQLdb.Error as e:
+            abort(400, "user_increment_facts_posted: {}".format(e.args[1]))
+
+    # Decrement user's facts_posted stat
+    def user_decrement_facts_posted(self, userid):
+        try:
+            self.query(
+                """
+                UPDATE users
+                SET facts_posted=facts_posted-1
+                WHERE userid='{}'
+                """.format(userid))
+        except MySQLdb.Error as e:
+            abort(400, "user_decrement_facts_posted: {}".format(e.args[1]))
+
+    # Insert a new fact into facts table
     def add_fact(self, userid, highlight, replacement, description):
         try:
             self.query(
                 """
                 INSERT INTO facts (`userid`, `highlight`, `replacement`, `description`)
-                VALUES ('{}', '{}', '{}', '{}', '{}');
+                VALUES ('{}', '{}', '{}', '{}');
                 """.format(userid, highlight, replacement, description))
+            self.user_increment_facts_posted(userid)
         except MySQLdb.Error as e:
             abort(400, "add_fact: {}".format(e.args[1]))
 
@@ -127,6 +152,39 @@ class Database(object):
             return rv
         except MySQLdb.Error as e:
             abort(400, "get_fact: {}".format(e.args[1]))
+
+    # Get poster (userid) of fact
+    def get_poster(self, factid):
+        try:
+            rv = self.query(
+                """
+                SELECT userid
+                FROM facts
+                WHERE id='{}'
+                """.format(factid))
+            return None if not rv else rv[0]["userid"]
+        except MySQLdb.Error as e:
+            abort(400, "get_poster: {}".format(e.args[1]))
+
+    # Delete a fact and its associated votes. Decrement user's facts_posted 
+    # statistic.
+    def delete_fact(self, factid):
+        try:
+            userid = self.get_poster(factid)
+            self.query(
+                """
+                DELETE FROM facts
+                WHERE id='{}'
+                """.format(factid))
+            self.query(
+                """
+                DELETE FROM votes
+                WHERE factid='{}'
+                """.format(factid))
+            self.user_decrement_facts_posted(userid)
+            return True
+        except MySQLdb.Error as e:
+            abort(400, "delete_fact: {}".format(e.args[1]))
 
     # Check if a userid has voted on a factid. If not, return None, otherwise 
     # return the value of the vote (+! or -1).

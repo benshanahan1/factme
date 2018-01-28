@@ -1,0 +1,26 @@
+# Add a new fact, update a value, upvote the fact, then delete it
+curl localhost/v1/123456/facts_posted
+
+curl -X POST -H "Content-Type: application/json" -d "{\"highlight\":\"This is fake news\", \"replacement\":\"This is a well-known fact\", \"description\":\"A crowd-sourced encyclopaedia!\"}" localhost/v1/123456
+
+curl localhost/v1/123456/facts_posted
+
+
+
+curl localhost/v1/fact/12/replacement
+
+curl -X POST -H "Content-Type: application/json" -d "My new REPLACEMENT text" localhost/v1/123456/12/replacement
+
+curl localhost/v1/fact/12/replacement
+
+
+
+
+curl localhost/v1/fact/12/votes
+curl -X POST localhost/v1/fact/12/123456/upvote
+curl localhost/v1/fact/12/votes
+
+
+
+
+#curl -X DELETE localhost/v1/fact/12

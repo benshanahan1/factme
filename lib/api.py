@@ -20,8 +20,8 @@ class Endpoint(Resource):
     #   GET /v1/fact/<factid>/votes
     #
     def get(self, key_path):
+        rv = []
         endpoint = EP.parse_endpoint(key_path)
-        rv       = []
 
         # Check if endpoint is 'fact' otherwise, it will be userid
         user_requested_fact = False
@@ -137,7 +137,7 @@ class Endpoint(Resource):
             # Determine if user is POSTing a new fact or updating an old one
             if len(endpoint) == 1:  # User is POSTing a new fact
                 if "highlight" in data and "replacement" in data and \
-                   "url" in data and "description" in data:
+                   "description" in data:
                     self.db.add_fact(userid,
                         data["highlight"], data["replacement"], data["description"])
                 else:
@@ -159,4 +159,29 @@ class Endpoint(Resource):
 
             rv = data
     
+        return rv
+
+    # Delete a fact and all associated votes. User's facts_posted statistic is
+    # also decremented.
+    #
+    #   DELETE /v1/fact/4
+    #
+    def delete(self, key_path):
+        rv = []
+        endpoint = EP.parse_endpoint(key_path)
+
+        if len(endpoint) == 2:
+            if endpoint[0] == "fact":
+                factid = endpoint[1]
+                if self.db.fact_exists(factid):
+                    rv = self.db.delete_fact(factid)
+                else:
+                    rv = {"message": "Specified fact ID does not exist."}
+
+            else:
+                abort(404, "Bad endpoint.")
+
+        else:
+            abort(404, "Bad endpoint.")
+
         return rv

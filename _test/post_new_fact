@@ -1,4 +1,4 @@
-curl -X POST -H "Content-Type: application/json" -d "{\"highlight\":\"This is fake news\", \"replacement\":\"This is a well-known fact\", \"url\":\"www.wikipedia.org\", \"description\":\"A crowd-sourced encyclopaedia!\"}" localhost/v1/123456
+curl -X POST -H "Content-Type: application/json" -d "{\"highlight\":\"This is fake news\", \"replacement\":\"This is a well-known fact\", \"description\":\"A crowd-sourced encyclopaedia!\"}" localhost/v1/123456
 
-# Now, URL only. This should fail because we need highlight, replacement, url, and description to be provided for the POST request to be correct.
-curl -X POST -H "Content-Type: application/json" -d "{\"highlight\":\"This is fake news\", \"url\":\"www.wikipedia.org\"}" localhost/v1/123456
+# Now, URL only. This should fail because we need highlight, replacement, and description to be provided for the POST request to be correct.
+curl -X POST -H "Content-Type: application/json" -d "{\"highlight\":\"This is fake news\", \"replacement\":\"This is actually true.\"}" localhost/v1/123456

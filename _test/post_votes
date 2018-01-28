@@ -1,0 +1,13 @@
+# Test voting
+
+curl localhost/v1/fact/3/votes
+curl -X POST localhost/v1/fact/3/123456/upvote
+curl localhost/v1/fact/3/votes
+curl -X POST localhost/v1/fact/3/123456/downvote
+curl localhost/v1/fact/3/votes
+
+curl localhost/v1/fact/3/votes
+curl -X POST localhost/v1/fact/3/234567/upvote
+curl localhost/v1/fact/3/votes
+curl -X POST localhost/v1/fact/3/234567/downvote
+curl localhost/v1/fact/3/votes
