@@ -1,1 +1,0 @@
-curl -X PUT -H "Content-Type: application/json" -d "{\"url\":\"www.wikipedia.org\"}" localhost/v1/ben/facts

@@ -1,0 +1,7 @@
+curl localhost/v1/123456
+curl localhost/v1/123456/name
+curl localhost/v1/123456/upvotes_received
+
+# Fact related
+curl localhost/v1/123456/facts
+curl localhost/v1/fact/4

@@ -1,0 +1,10 @@
+curl -X POST -H "Content-Type: application/json" -d "www.nytimes.com" localhost/v1/123456/3/url
+
+# Now, use an invalid flag, this should fail.
+curl -X POST -H "Content-Type: application/json" -d "www.nytimes.com" localhost/v1/123456/3/fake_flag
+
+# Now, forget to include the fact ID, this should fail.
+curl -X POST -H "Content-Type: application/json" -d "www.nytimes.com" localhost/v1/123456/url
+
+# Now, use a fact ID that doesn't exist, this should fail.
+curl -X POST -H "Content-Type: application/json" -d "www.nytimes.com" localhost/v1/123456/0/url
