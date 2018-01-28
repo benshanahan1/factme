@@ -1,5 +1,4 @@
-var apiURL = "http://138.16.49.17/v1/";
-var userID = "234567";
+
 
 
 function guid() {

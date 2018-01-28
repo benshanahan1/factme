@@ -14,7 +14,7 @@ function addFactsToPage(facts) {
     altText = "Suggested replacement: " + fact.replacement;
     inputText = document.body
     var innerHTML = inputText.innerHTML;
-    var index = innerHTML.indexOf(text);
+    var index = innerHTML.indexOf(facts.highlight);
     if ( index >= 0 )
     { 
         innerHTML = innerHTML.substring(0,index) + 
@@ -95,7 +95,7 @@ var factAddString = `
         </blockquote>
         <input class="form-control" type="text" placeholder="What it should actually say." id="replacementInput" />
         <div class="input-group">
-          <textarea class="form-control" placeholder="Don't forget to cite your sources." rows="5" style="resize:none;" id="descriptionInput"></textarea>
+          <textarea class="form-control" placeholder="Don't forget to cite your sources." rows="5" style="resize:none;width:100%;" id="descriptionInput"></textarea>
           <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="button" id="submitBtn">Submit Fact</button>
           </div>
@@ -151,7 +151,7 @@ function highlight(text)
     var altText = "Replaced with: <some text here>";
 
     inputText = document.body
-    var innerHTML = inputText.innerHTML;
+    var innerHTML = inputText.innerHTML; //.replace(/\n/g, " ");
     var index = innerHTML.indexOf(text);
     
     if ( index >= 0 )
