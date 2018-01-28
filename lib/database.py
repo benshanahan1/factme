@@ -100,13 +100,13 @@ class Database(object):
             abort(400, "user_decrement_facts_posted: {}".format(e.args[1]))
 
     # Insert a new fact into facts table
-    def add_fact(self, userid, highlight, replacement, description):
+    def add_fact(self, userid, highlight, replacement, description, url):
         try:
             self.query(
                 """
-                INSERT INTO facts (`userid`, `highlight`, `replacement`, `description`)
-                VALUES ('{}', '{}', '{}', '{}');
-                """.format(userid, highlight, replacement, description))
+                INSERT INTO facts (`userid`, `highlight`, `replacement`, `description`, `url`)
+                VALUES ('{}', '{}', '{}', '{}', '{}');
+                """.format(userid, highlight, replacement, description, url))
             self.user_increment_facts_posted(userid)
         except MySQLdb.Error as e:
             abort(400, "add_fact: {}".format(e.args[1]))
@@ -152,6 +152,21 @@ class Database(object):
             return rv
         except MySQLdb.Error as e:
             abort(400, "get_fact: {}".format(e.args[1]))
+
+    # Return list of factid's by reverse-lookup of given url
+    def get_facts_by_url(self, url):
+        if url is None or url == "":
+            return []
+        try:
+            rv = self.query(
+                """
+                SELECT id
+                FROM facts
+                WHERE url='{}'
+                """.format(url))
+            return [] if len(rv) == 0 else [f["id"] for f in rv]
+        except MySQLdb.Error as e:
+            abort(400, "get_facts_by_url: {}".format(e.args[1]))
 
     # Get poster (userid) of fact
     def get_poster(self, factid):

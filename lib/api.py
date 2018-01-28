@@ -137,11 +137,12 @@ class Endpoint(Resource):
             # Determine if user is POSTing a new fact or updating an old one
             if len(endpoint) == 1:  # User is POSTing a new fact
                 if "highlight" in data and "replacement" in data and \
-                   "description" in data:
+                   "description" in data and "url" in data:
                     self.db.add_fact(userid,
-                        data["highlight"], data["replacement"], data["description"])
+                        data["highlight"], data["replacement"], data["description"], data["url"])
                 else:
                     abort(400, "Bad payload, must provide highlight, replacement, and description fields.")
+                rv = data
 
             elif len(endpoint) == 3:  # User is updating a fact
                 columns = self.db.get_columns("facts")
@@ -153,11 +154,18 @@ class Endpoint(Resource):
                     self.db.update_fact(factid, flag, data)
                 else:
                     abort(400, "Fact update failed, flag '{}' is not recognized.".format(flag))
+                rv = data
+
+            elif len(endpoint) == 2:  # User is requesting a computed flag
+                flag = endpoint[1]
+                if flag == "get_facts_by_url":
+                    if "url" in data:
+                        rv = self.db.get_facts_by_url(data["url"])
+                    else:
+                        abort(400, "Bad payload.")
 
             else:
                 abort(404, "Bad endpoint.")
-
-            rv = data
     
         return rv
 
