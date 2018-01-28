@@ -136,6 +136,7 @@ class Endpoint(Resource):
 
             # Determine if user is POSTing a new fact or updating an old one
             if len(endpoint) == 1:  # User is POSTing a new fact
+                print(data)
                 if "highlight" in data and "replacement" in data and \
                    "description" in data and "url" in data:
                     self.db.add_fact(userid,
@@ -161,6 +162,9 @@ class Endpoint(Resource):
                 if flag == "get_facts_by_url":
                     if "url" in data:
                         rv = self.db.get_facts_by_url(data["url"])
+                        if rv:
+                            rv = [self.db.get_fact(factid) for factid in rv]
+
                     else:
                         abort(400, "Bad payload.")
 
