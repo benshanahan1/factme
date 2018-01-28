@@ -1,10 +1,16 @@
-.highlight { background-color: yellow }
+/*.highlight { background-color: yellow }*/
 
 .factCheckedText {
-	background-color: #FFF333;
-	font-weight: bold;
+	background-color: whitesmoke;
+	color: #873FCA;
+    font-weight: bold;
+    border: solid 1px #cccccc;
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
 }
 
-.factCheckedText :hover {
-	background-color: #CAC34B;
+.factCheckedText:hover {
+	color: #DE319A;
+    text-decoration: underline;
 }

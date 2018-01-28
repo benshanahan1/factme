@@ -73,8 +73,36 @@ chrome.runtime.onMessage.addListener(
   });
 
 
-var myHilitor = new Hilitor();
-myHilitor.apply("generate");
+function getAllIndexes(arr, val) {
+    var indexes = [], i = -1;
+    while ((i = arr.indexOf(val, i+1)) != -1){
+        indexes.push(i);
+    }
+    return indexes;
+}
+function highlight(text)
+{
+    var factid = 3;  // from callback
+    var altText = "Replaced with: <some text here>";
+
+    inputText = document.body
+    var innerHTML = inputText.innerHTML;
+    var index = innerHTML.indexOf(text);
+    if ( index >= 0 )
+    { 
+        innerHTML = innerHTML.substring(0,index) + 
+            "<span class='factCheckedText' id='" + 
+            factid + "' title='" + altText + "'>" + 
+            innerHTML.substring(index,index+text.length) + 
+            "</span>" + innerHTML.substring(index + text.length);
+        inputText.innerHTML = innerHTML; 
+    }
+}
+
+highlight("I am trying to find the index of");
+
+// var myHilitor = new Hilitor();
+// myHilitor.apply("generate");
 
 
 // function findTextInPage(phrase) {
