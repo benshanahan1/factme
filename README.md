@@ -4,6 +4,8 @@ Crowd-sourced fact checker for the world wide web.
 ![factme screenshot](static/img/factme.png)
 
 ## About factme
+This tool was created for the Hack@Brown January 2018 hackathon. 
+
 Users of this chrome extension are able to flag fake news on any website, and cite a corrective source. Other users will see these changes and can up or downvote them accordingly.
 
 ## Implications
